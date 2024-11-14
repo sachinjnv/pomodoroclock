@@ -1,0 +1,211 @@
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>Pomodoro Clock</title>  
+   <style>
+    body {  
+    display: flex;  
+    justify-content: center;  
+    align-items: center;  
+    height: 100vh;  
+    background-color: #f0f0f0;  
+    margin: 0;  
+}  
+
+.container {  
+    height: 460px;  
+    width: 220px;  
+    background-color: rgba(255, 255, 255, 0.8);  
+    border-radius: 10px;  
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);  
+    display: flex;  
+    flex-direction: column;  
+    justify-content: space-between;  
+    padding: 20px;  
+}  
+
+.time-display {  
+    display: flex;  
+    justify-content: center;  
+    align-items: center;  
+    height: 50%;  
+}  
+
+h1 {  
+    font-size: 48px;  
+    margin: 0;  
+}  
+
+.controls {  
+    display: flex;  
+    flex-direction: column;  
+    justify-content: space-between;  
+    height: 50%;  
+}  
+
+.controls div {  
+    display: flex;  
+    justify-content: space-between;  
+    align-items: center;  
+}  
+
+button {  
+    background-color: #007bff;  
+    color: white;  
+    border: none;  
+    border-radius: 5px;  
+    padding: 10px;  
+    cursor: pointer;  
+    font-size: 16px;  
+}  
+
+button:disabled {  
+    background-color: #ccc;  
+    cursor: not-allowed;  
+}  
+
+span {  
+    font-size: 20px;  
+    width: 30px;  
+    text-align: center;  
+}
+   </style>
+</head>  
+<body>  
+    <div class="container">  
+        <div class="time-display">  
+            <h1 id="timer">25:00</h1>  
+        </div>  
+        <div class="controls">  
+            <div class="session">  
+                <h2>Session Time</h2>  
+                <button id="session-decrease">-</button>  
+                <span id="session-time">25</span>  
+                <button id="session-increase">+</button>  
+            </div>  
+            <div class="break">  
+                <h2>Break Time</h2>  
+                <button id="break-decrease">-</button>  
+                <span id="break-time">5</span>  
+                <button id="break-increase">+</button>  
+            </div>  
+            <div class="action-buttons">  
+                <button id="start">Start</button>  
+                <button id="reset">Reset</button>  
+            </div>  
+        </div>  
+    </div>  
+    <script>
+
+
+let sessionTime = 25; // default session time in minutes  
+let breakTime = 5; // default break time in minutes  
+let timer; // timer variable  
+let isSession = true; // flag for session or break  
+let timeRemaining; // time remaining in seconds  
+
+const timerDisplay = document.getElementById('timer');  
+const sessionTimeDisplay = document.getElementById('session-time');  
+const breakTimeDisplay = document.getElementById('break-time');  
+
+const sessionIncreaseButton = document.getElementById('session-increase');  
+const sessionDecreaseButton = document.getElementById('session-decrease');  
+const breakIncreaseButton = document.getElementById('break-increase');  
+const breakDecreaseButton = document.getElementById('break-decrease');  
+const startButton = document.getElementById('start');  
+const resetButton = document.getElementById('reset');  
+
+// Update the display time  
+function updateDisplay() {  
+    const minutes = Math.floor(timeRemaining / 60);  
+    const seconds = timeRemaining % 60;  
+    timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;  
+}  
+
+// Start the timer  
+function startTimer() {  
+    if (timeRemaining > 0) {  
+        timer = setInterval(() => {  
+            timeRemaining--;  
+            updateDisplay();  
+            if (timeRemaining <= 0) {  
+                clearInterval(timer);  
+                isSession = !isSession; // Switch between session and break  
+                timeRemaining = isSession ? sessionTime * 60 : breakTime * 60;  
+                startTimer(); // Start the next timer  
+            }  
+        }, 1000);  
+    }  
+}  
+
+// Event listeners for session time  
+sessionIncreaseButton.addEventListener('click', () => {  
+    if (sessionTime < 60) {  
+        sessionTime++;  
+        sessionTimeDisplay.textContent = sessionTime;  
+        if (!isSession) {  
+            timeRemaining = sessionTime * 60;  
+            updateDisplay();  
+        }  
+    }  
+});  
+
+sessionDecreaseButton.addEventListener('click', () => {  
+    if (sessionTime > 1) {  
+        sessionTime--;  
+        sessionTimeDisplay.textContent = sessionTime;  
+        if (!isSession) {  
+            timeRemaining = sessionTime * 60;  
+            updateDisplay();  
+        }  
+    }  
+});  
+
+// Event listeners for break time  
+breakIncreaseButton.addEventListener('click', () => {  
+    if (breakTime < 60) {  
+        breakTime++;  
+        breakTimeDisplay.textContent = breakTime;  
+    }  
+});  
+
+breakDecreaseButton.addEventListener('click', () => {  
+    if (breakTime > 1) {  
+        breakTime--;  
+        breakTimeDisplay.textContent = breakTime;  
+    }  
+});  
+
+// Start button event  
+startButton.addEventListener('click', () => {  
+    if (!timer) { // Only start if timer is not already running  
+        timeRemaining = sessionTime * 60; // Set the initial time  
+        updateDisplay();  
+        startTimer();  
+        sessionIncreaseButton.disabled = true;  
+        sessionDecreaseButton.disabled = true;  
+        breakIncreaseButton.disabled = true;  
+        breakDecreaseButton.disabled = true;  
+    }  
+});  
+
+// Reset button event  
+resetButton.addEventListener('click', () => {  
+    clearInterval(timer);  
+    timer = null;  
+    isSession = true;  
+    sessionTime = 25;  
+    breakTime = 5;  
+    sessionTimeDisplay.textContent = sessionTime;  
+    breakTimeDisplay.textContent = breakTime;  
+    timerDisplay.textContent = '25:00';  
+    sessionIncreaseButton.disabled = false;  
+    sessionDecreaseButton.disabled = false;  
+    breakIncreaseButton.disabled = false;  
+    breakDecreaseButton.disabled = false;  
+});
+    </script>  
+</body>  
+</html>
